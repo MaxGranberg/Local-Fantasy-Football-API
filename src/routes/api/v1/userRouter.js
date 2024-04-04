@@ -7,7 +7,7 @@
 
 import express from 'express'
 import { UserController } from '../../../controllers/UserController.js'
-import { authenticateJWT, verifyUserId } from ''
+import { authenticateJWT, checkPermission, verifyUserId } from ''
 
 export const router = express.Router()
 
