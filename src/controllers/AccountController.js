@@ -8,6 +8,8 @@
 import jwt from 'jsonwebtoken'
 import createError from 'http-errors'
 import { User } from '../models/user.js'
+import { LeagueService } from '../services/LeagueService.js'
+import { League } from '../models/league.js'
 
 /**
  * Encapsulates a controller.
@@ -64,6 +66,16 @@ export class AccountController {
       })
 
       await user.save()
+
+      // Add user to the default league
+      let defaultLeague = await League.findOne({ name: 'Global League' })
+      if (!defaultLeague) {
+        defaultLeague = new League({ name: 'Global League' })
+        await defaultLeague.save()
+      }
+
+      const leagueService = new LeagueService()
+      await leagueService.addUserToLeague(user, defaultLeague)
 
       res.status(201).json({
         id: user.id,
