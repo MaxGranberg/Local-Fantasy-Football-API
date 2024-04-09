@@ -6,7 +6,7 @@
  */
 
 import express from 'express'
-import { LeagueController } from '../../../controllers/LeagueController.js'
+import { LeagueController } from '../../../controllers/LeagueContgroller.js'
 import { authenticateJWT, hasPermissions } from '../../../middlewares/auth.js'
 
 export const router = express.Router()
