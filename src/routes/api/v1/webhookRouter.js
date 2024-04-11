@@ -6,13 +6,13 @@
  */
 
 import express from 'express'
+import crypto from 'crypto'
 import { Webhook } from '../../../models/webhook.js'
-import { authenticateJWT } from '../../../middlewares/auth.js'
 
 export const router = express.Router()
 
 // Map HTTP verbs and route paths to controller actions.
-router.post('/webhooks', authenticateJWT, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
     const { url, event } = req.body
 
@@ -26,8 +26,26 @@ router.post('/webhooks', authenticateJWT, async (req, res, next) => {
     // Return the secret token with the response for the registrant to use
     res.status(201).json({
       message: 'Webhook registered successfully.',
-      secretToken
+      secretToken,
+      id: webhook.id
     })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// DELETE endpoint to remove a registered webhook
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const webhook = await Webhook.findById(id)
+
+    if (!webhook) {
+      return res.status(404).json({ message: 'Webhook not found.' })
+    }
+
+    await webhook.deleteOne()
+    res.status(204).json({ message: 'Webhook successfully deleted.' })
   } catch (error) {
     next(error)
   }
@@ -47,8 +65,6 @@ router.post('/webhooks', authenticateJWT, async (req, res, next) => {
  *     summary: Register a new webhook
  *     description: Allows external services to register a webhook to be notified of specific events. A secret token will be provided in the response, which should be used to verify the authenticity of subsequent webhook calls.
  *     tags: [Webhook]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -84,6 +100,31 @@ router.post('/webhooks', authenticateJWT, async (req, res, next) => {
  *                   example: abc123xyz456secret
  *       400:
  *         description: Bad request, possibly due to missing or invalid data in request body.
+ *       500:
+ *         description: Internal server error.
+ */
+
+/**
+ * @swagger
+ * /webhooks/{id}:
+ *   delete:
+ *     summary: Delete a registered webhook
+ *     description: Deletes a specific webhook by its ID.
+ *     tags: [Webhook]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the webhook to delete
+ *     responses:
+ *       204:
+ *         description: Webhook successfully deleted.
+ *       400:
+ *         description: Bad request, possibly due to invalid format of the webhook ID.
+ *       404:
+ *         description: Webhook not found.
  *       500:
  *         description: Internal server error.
  */
