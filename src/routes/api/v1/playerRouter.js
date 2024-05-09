@@ -274,7 +274,7 @@ router.delete('/:id', authenticateJWT, hasPermissions, (req, res, next) => contr
 
 /**
  * @swagger
- *  /players/points/{id}:
+ * /players/points/{id}:
  *   patch:
  *     summary: Update a player's points
  *     description: Allows an authenticated user with admin permissions to update a player's total and recent points. This operation will notify registered webhooks about the update.
