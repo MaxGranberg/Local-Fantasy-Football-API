@@ -7,6 +7,7 @@
 
 import { Player } from '../models/player.js'
 import { Webhook } from '../models/webhook.js'
+import { FantasyTeam } from '../models/fantasyTeam.js'
 import { sendWebhookWithSignature } from './WebhookController.js'
 
 /**
@@ -164,6 +165,12 @@ export class PlayerController {
       req.player.recentPoints = addedPoints
       await req.player.save()
 
+      // Fetch all fantasy teams that include this player
+      const teamsToUpdate = await FantasyTeam.find({ players: req.player._id })
+      for (const team of teamsToUpdate) {
+        await this.updateFantasyTeamScore(team)
+      }
+
       // Notify webhooks about the points update
       const webhooks = await Webhook.find({ event: 'pointsUpdate' })
       webhooks.forEach(webhook => {
@@ -171,10 +178,25 @@ export class PlayerController {
         sendWebhookWithSignature(webhook, payload)
       })
 
+      req.player.recentPoints = 0 // Reset recent points after adding to the team's score
+      await req.player.save()
       res.json({ message: 'Player points updated' })
     } catch (error) {
       next(error)
     }
+  }
+
+  /**
+   * Updates a Fantasy team's total points based on the recent points earned by its players.
+   *
+   * @param {object} fantasyTeam - The fantasy team.
+   */
+  async updateFantasyTeamScore (fantasyTeam) {
+    await fantasyTeam.populate('players')
+
+    const scoreToAdd = fantasyTeam.players.reduce((acc, player) => acc + player.recentPoints, 0)
+    fantasyTeam.totalScore += scoreToAdd
+    await fantasyTeam.save()
   }
 
   /**
