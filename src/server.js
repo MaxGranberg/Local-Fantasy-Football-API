@@ -23,7 +23,7 @@ try {
   app.use(helmet())
 
   // Enable CORS for the server
-  app.use(cors({ origin: ['https://fflapi-a68806964222.herokuapp.com/', 'http://localhost:8080'], credentials: true }))
+  app.use(cors({ origin: ['https://fflapi-a68806964222.herokuapp.com/', 'https://grasrotsfantasy-9871479275bf.herokuapp.com/', 'http://localhost:8080'], credentials: true }))
 
   // Set up a morgan logger using the dev format for log entries.
   app.use(logger('dev'))
